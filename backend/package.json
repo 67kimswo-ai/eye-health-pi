@@ -1,0 +1,19 @@
+{
+  "name": "eye-health-pi-backend",
+  "version": "1.0.0",
+  "description": "아이케어 파이 - Pi Network SDK 백엔드",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
