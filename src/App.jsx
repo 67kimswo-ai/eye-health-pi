@@ -342,10 +342,15 @@ export default function App() {
               Pi Browser가 아닙니다
             </div>
             <div style={{ fontSize:12, color:"rgba(255,255,255,0.65)", lineHeight:1.6, marginBottom:14 }}>
-              현재 개발 환경에서는 테스트 로그인을 사용합니다. 실제 Pi 로그인은 Pi Browser에서 가능합니다.
+              실제 Pi 연동 기능은 Pi Browser에서만 동작합니다.
+              아래 버튼으로 현재 URL을 복사한 뒤 Pi Browser에 붙여넣어 실행해 주세요.
             </div>
+            <button onClick={copyAppUrl}
+              style={btn("linear-gradient(135deg,#00C9A7,#0094d4)", { fontSize:12, padding:"12px 0", marginBottom: 10 })}>
+              Pi Browser에서 열기
+            </button>
             <button onClick={handleDevLogin}
-              style={btn("linear-gradient(135deg,#00C9A7,#0094d4)", { fontSize:12, padding:"12px 0" })}>
+              style={btn("rgba(255,255,255,0.08)", { fontSize:12, padding:"12px 0", color: "#fff", border: "1px solid rgba(255,255,255,0.12)" })}>
               개발 환경 로그인
             </button>
           </div>
