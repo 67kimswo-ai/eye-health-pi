@@ -194,7 +194,15 @@ export default function App() {
         setLoading(false);
       }
     } else {
-      handleDevLogin();
+      // Pi Browser가 아닌 경우: 안내 후 앱을 전체 새로고침하여 초기화합니다.
+      notify('Pi Browser에서 로그인해 주세요. Pi Browser에서 실행 후 다시 시도해 주세요.', 'error');
+      setPiUser(null);
+      setUserStats(null);
+      setRewardInfo(null);
+      setScreen('home');
+      if (typeof window !== 'undefined') {
+        setTimeout(() => { window.location.reload(); }, 1200);
+      }
     }
   }, [handleDevLogin, isPiBrowser]);
 

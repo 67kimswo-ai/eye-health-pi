@@ -26,14 +26,41 @@ const ASTIGMATISM_LINES = [
 ];
 
 const DIGIT_PATTERNS = {
-  "7": [
-    "#####",
-    "....#",
-    "...#.",
+  "0": [
+    ".###.",
+    "#...#",
+    "#...#",
+    "#...#",
+    "#...#",
+    "#...#",
+    ".###."
+  ],
+  "1": [
     "..#..",
+    ".##..",
+    "..#..",
+    "..#..",
+    "..#..",
+    "..#..",
+    ".###."
+  ],
+  "2": [
+    ".###.",
+    "#...#",
+    "....#",
+    "..##.",
     ".#...",
-    ".#...",
-    ".#..."
+    "#....",
+    "#####"
+  ],
+  "3": [
+    ".###.",
+    "#...#",
+    "....#",
+    "..##.",
+    "....#",
+    "#...#",
+    ".###."
   ],
   "4": [
     "#...#",
@@ -44,6 +71,33 @@ const DIGIT_PATTERNS = {
     "....#",
     "....#"
   ],
+  "5": [
+    "#####",
+    "#....",
+    "#....",
+    ".###.",
+    "....#",
+    "#...#",
+    ".###."
+  ],
+  "6": [
+    ".###.",
+    "#....",
+    "#....",
+    "####.",
+    "#...#",
+    "#...#",
+    ".###."
+  ],
+  "7": [
+    "#####",
+    "....#",
+    "...#.",
+    "..#..",
+    ".#...",
+    ".#...",
+    ".#..."
+  ],
   "8": [
     ".###.",
     "#...#",
@@ -53,13 +107,13 @@ const DIGIT_PATTERNS = {
     "#...#",
     ".###."
   ],
-  "3": [
+  "9": [
     ".###.",
     "#...#",
-    "....#",
-    "..##.",
-    "....#",
     "#...#",
+    ".####",
+    "....#",
+    "....#",
     ".###."
   ],
 };
@@ -95,28 +149,7 @@ function buildNumberDots(number, color) {
   return result;
 }
 
-const COLOR_TESTS = [
-  {
-    id: 1,
-    dots: generateIshihara(74,
-      buildNumberDots("74", "#D94035"),
-      "#A8D5A2",
-      300
-    ),
-    answer: "74",
-    label: "숫자가 보이시나요?",
-  },
-  {
-    id: 2,
-    dots: generateIshihara(8,
-      buildNumberDots("8", "#2F73C9"),
-      "#D4885A",
-      220
-    ),
-    answer: "8",
-    label: "숫자가 보이시나요?",
-  },
-];
+// COLOR_TESTS is generated per-run to randomize displayed numbers
 
 function generateIshihara(number, numberDots, bgColor, seed) {
   const allDots = [];
@@ -152,6 +185,7 @@ export default function VisionTestModule({ onComplete, piUser }) {
   const [astigResult, setAstigResult] = useState(null);
   const [colorIdx, setColorIdx] = useState(0);
   const [colorResults, setColorResults] = useState([]);
+  const [colorTests, setColorTests] = useState([]);
   const [history, setHistory]   = useState(() => {
     try { return JSON.parse(localStorage.getItem("visionHistory") || "[]"); } catch { return []; }
   });
@@ -204,13 +238,33 @@ export default function VisionTestModule({ onComplete, piUser }) {
     setAstigResult(result);
     setColorIdx(0);
     setColorResults([]);
+    // Generate random color tests for this run with numbers 1-99
+    const gen = () => {
+      const rndNum = () => Math.floor(Math.random() * 99) + 1; // 1~99
+      const makeTest = (num, fg, bg, seed) => ({
+        id: seed,
+        dots: generateIshihara(num,
+          buildNumberDots(String(num), fg),
+          bg,
+          seed
+        ),
+        answer: String(num),
+        label: "숫자가 보이시나요?",
+      });
+      const n1 = rndNum();
+      const n2 = rndNum();
+      const t1 = makeTest(n1, "#D94035", "#A8D5A2", Date.now() % 10000 + 1);
+      const t2 = makeTest(n2, "#2F73C9", "#D4885A", (Date.now() % 10000) + 5000);
+      return [t1, t2];
+    };
+    setColorTests(gen());
     setStep("color");
   };
 
   const handleColor = (correct) => {
     const updated = [...colorResults, correct];
     setColorResults(updated);
-    if (colorIdx < COLOR_TESTS.length - 1) {
+    if (colorIdx < (colorTests.length - 1)) {
       setColorIdx(i => i + 1);
     } else {
       saveAndFinish(updated);
@@ -560,12 +614,12 @@ export default function VisionTestModule({ onComplete, piUser }) {
   //  COLOR TEST
   // ════════════════════════════════════════════════════════
   if (step === "color") {
-    const test = COLOR_TESTS[colorIdx];
+    const test = colorTests[colorIdx] || { dots: [], answer: "", label: "" };
     return wrap(
       <div style={{paddingTop:40}}>
         <div style={{textAlign:"center",marginBottom:24}}>
           <div style={{fontSize:11,color:"#A78BFA",letterSpacing:1,marginBottom:8}}>
-            3단계 · 색각 검사 ({colorIdx+1}/{COLOR_TESTS.length})
+            3단계 · 색각 검사 ({colorIdx+1}/{colorTests.length})
           </div>
           <h2 style={{fontSize:20,fontWeight:700,marginBottom:6}}>이시하라 색각 검사</h2>
           <p style={{color:"rgba(255,255,255,0.45)",fontSize:12}}>{test.label}</p>
@@ -597,19 +651,28 @@ export default function VisionTestModule({ onComplete, piUser }) {
         </p>
 
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {["안 보여요", test.answer, test.answer === "74" ? "7" : "3", "다른 숫자"].slice(0,4).map((opt,i) => (
-            <button key={i}
-              onClick={() => handleColor(opt === test.answer)}
-              style={{
-                padding:"13px 0",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,
-                background:"rgba(255,255,255,0.04)",
-                color:"rgba(255,255,255,0.8)",fontSize:14,cursor:"pointer",
-                transition:"all 0.2s",
-                fontWeight: opt === test.answer ? 600 : 400,
-              }}>
-              {opt === "안 보여요" ? "👁️‍🗨️ 안 보여요" : `🔢 ${opt}`}
-            </button>
-          ))}
+          {(() => {
+            const correct = test.answer;
+            const wrongOptions = new Set();
+            while (wrongOptions.size < 3) {
+              const wrong = String(Math.floor(Math.random() * 99) + 1);
+              if (wrong !== correct) wrongOptions.add(wrong);
+            }
+            const options = [correct, ...Array.from(wrongOptions)].sort(() => Math.random() - 0.5);
+            return options.map((opt,i) => (
+              <button key={i}
+                onClick={() => handleColor(opt === test.answer)}
+                style={{
+                  padding:"13px 0",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,
+                  background:"rgba(255,255,255,0.04)",
+                  color:"rgba(255,255,255,0.8)",fontSize:14,cursor:"pointer",
+                  transition:"all 0.2s",
+                  fontWeight: opt === test.answer ? 600 : 400,
+                }}>
+                {opt === "안 보여요" ? "👁️‍🗨️ 안 보여요" : `🔢 ${opt}`}
+              </button>
+            ));
+          })()}
         </div>
       </div>
     );
