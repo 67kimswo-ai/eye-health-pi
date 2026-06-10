@@ -9,7 +9,21 @@
 
   <!-- Pi SDK -->
   <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-  <script>Pi.init({ version: "2.0" });</script>
+  <script>
+    async function initPiSdk() {
+      try {
+        const response = await fetch('/validation-key.txt');
+        if (!response.ok) throw new Error('validation-key.txt 로드 실패');
+        const validationKey = (await response.text()).trim();
+        if (!validationKey) throw new Error('validation-key.txt가 비어 있습니다');
+        Pi.init({ version: '2.0', validationKey });
+      } catch (error) {
+        console.error('Pi SDK 초기화 오류:', error);
+        Pi.init({ version: '2.0' });
+      }
+    }
+    initPiSdk();
+  </script>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }

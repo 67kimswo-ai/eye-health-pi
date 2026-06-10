@@ -204,6 +204,7 @@ export default function App() {
       setUserStats(null);
       setRewardInfo(null);
       setScreen('home');
+      setLoading(false);
       if (typeof window !== 'undefined') {
         setTimeout(() => { window.location.reload(); }, 1200);
       }
