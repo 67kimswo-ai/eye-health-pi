@@ -114,6 +114,10 @@ export default function App() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     setCurrentUrl(window.location.href);
+    // Enable Pi SDK sandbox mode for frontend testing
+    if (window.Pi) {
+      try { window.Pi.sandbox = true; } catch (e) { /* ignore */ }
+    }
     setIsPiBrowser(!!window.Pi && typeof window.Pi.authenticate === 'function');
   }, []);
 
