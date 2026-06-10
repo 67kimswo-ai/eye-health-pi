@@ -13,16 +13,26 @@
     async function initPiSdk() {
       try {
         const response = await fetch('/validation-key.txt');
-        if (!response.ok) throw new Error('validation-key.txt 로드 실패');
-        const validationKey = (await response.text()).trim();
-        if (!validationKey) throw new Error('validation-key.txt가 비어 있습니다');
-        Pi.init({ version: '2.0', validationKey });
+        if (response.ok) {
+          const validationKey = (await response.text()).trim();
+          if (validationKey) {
+            console.log('[Pi SDK] validation-key.txt 로드 성공');
+            Pi.init({ version: '2.0', validationKey });
+            return;
+          }
+        }
+        console.warn('[Pi SDK] validation-key.txt 없음, 기본 설정 사용');
+        Pi.init({ version: '2.0' });
       } catch (error) {
-        console.error('Pi SDK 초기화 오류:', error);
+        console.error('[Pi SDK] 초기화 오류:', error);
         Pi.init({ version: '2.0' });
       }
     }
-    initPiSdk();
+    if (typeof Pi !== 'undefined') {
+      initPiSdk();
+    } else {
+      console.warn('[Pi SDK] Pi 객체가 아직 로드되지 않음');
+    }
   </script>
 
   <style>

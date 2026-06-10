@@ -176,12 +176,19 @@ export default function App() {
           } catch (e) { console.error("미완료 결제 처리 실패", e); }
         };
 
+        console.log("Pi.authenticate() 시작...");
         // Pi SDK 인증 (username + payments 스코프 요청)
-        const authResult = await Pi.authenticate(
-          ["username", "payments"],
-          onIncompletePayment
-        );
+        const authResult = await Promise.race([
+          Pi.authenticate(
+            ["username", "payments"],
+            onIncompletePayment
+          ),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Pi 인증 타임아웃 (30초)")), 30000)
+          )
+        ]);
 
+        console.log("Pi.authenticate() 완료. 백엔드 검증 시작...");
         // 백엔드에서 토큰 검증 + 사용자 정보 조회
         const res = await API.post("/auth/verify", {
           accessToken: authResult.accessToken,
@@ -193,7 +200,7 @@ export default function App() {
 
       } catch (err) {
         console.error("로그인 실패:", err);
-        notify("로그인에 실패했습니다. 다시 시도해 주세요.", "error");
+        notify(`로그인 실패: ${err.message || err}`, "error");
       } finally {
         setLoading(false);
       }
